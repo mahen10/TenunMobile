@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login.dart'; // Impor file login
 import 'register_screen.dart';
+import 'transaction_screen.dart';
+import 'main_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,8 +17,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login',
       routes: {
         '/login': (context) => LoginScreen(),
-        '/home': (context) => HomeScreen(), // Buat halaman home nanti
-        '/register': (context) => RegisterScreen(), // Buat halaman register nanti
+        '/register': (context) => RegisterScreen(),
+        '/main': (context) => MainScreen(), // <-- ini halaman utama
       },
     );
   }

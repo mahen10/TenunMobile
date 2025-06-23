@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_screen.dart';
 import 'config.dart';
+import 'home_screen.dart'; // Impor home_screen.dart secara eksplisit
 
 void main() {
   runApp(MyApp());
@@ -30,16 +31,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Beranda')),
-      body: Center(child: Text('Selamat datang di Beranda!', style: GoogleFonts.poppins())),
-    );
-  }
-}
-
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -50,9 +41,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorMessage = '';
+  bool _isLoading = false;
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
+
       try {
         final response = await http.post(
           Uri.parse('${Config.apiUrl}/api/auth/login'),
@@ -67,20 +64,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          String token = data['token'];
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('auth_token', token);
-          Navigator.pushReplacementNamed(context, '/home');
+          String? token = data['token'] as String?; // Pastikan token ada
+          if (token != null) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('auth_token', token);
+            Navigator.pushReplacementNamed(context, '/home');
+          } else {
+            setState(() {
+              _errorMessage = 'Token tidak ditemukan dalam respons';
+              _isLoading = false;
+            });
+          }
         } else {
           final data = jsonDecode(response.body);
           setState(() {
             _errorMessage = data['message'] ?? 'Login gagal, cek kredensial Anda';
+            _isLoading = false;
           });
         }
       } catch (e) {
         print('Error: $e');
         setState(() {
           _errorMessage = 'Terjadi kesalahan: $e';
+          _isLoading = false;
         });
       }
     }
@@ -197,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // Tombol Masuk
                           ElevatedButton(
-                            onPressed: _login,
+                            onPressed: _isLoading ? null : _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFFF4C430),
                               shape: RoundedRectangleBorder(
@@ -206,20 +212,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               minimumSize: Size(double.infinity, 50),
                               elevation: 5,
                             ),
-                            child: Text(
-                              'Masuk',
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
+                            child: _isLoading
+                                ? CircularProgressIndicator(color: Colors.black)
+                                : Text(
+                                    'Masuk',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
                           ),
                           SizedBox(height: 20),
 
                           // Tombol Daftar
                           OutlinedButton(
-                            onPressed: () {
+                            onPressed: _isLoading ? null : () {
                               Navigator.pushNamed(context, '/register');
                             },
                             style: OutlinedButton.styleFrom(
@@ -268,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Teks "Belum mempunyai akun? Daftar"
                   TextButton(
-                    onPressed: () {
+                    onPressed: _isLoading ? null : () {
                       Navigator.pushNamed(context, '/register');
                     },
                     child: Text(
