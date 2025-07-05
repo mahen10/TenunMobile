@@ -199,8 +199,7 @@ class _ProdukPageState extends State<ProdukPage> {
     );
   }
 
-  void _showEditProdukModal(Map<String, dynamic> produk) {
-  // Bikin controller-nya sekali saja
+void _showEditProdukModal(Map<String, dynamic> produk) {
   final namaProdukController = TextEditingController(text: produk['nama_produk'] ?? '');
   final kategoriController = TextEditingController(text: produk['kategori'] ?? '');
   final hargaController = TextEditingController(text: produk['harga_jual'].toString());
@@ -248,6 +247,7 @@ class _ProdukPageState extends State<ProdukPage> {
                         maxLines: 3,
                         controller: deskripsiController,
                       ),
+                      SizedBox(height: 10),
                       ElevatedButton.icon(
                         icon: Icon(Icons.image),
                         label: Text('Pilih Foto (Opsional)'),
@@ -261,6 +261,55 @@ class _ProdukPageState extends State<ProdukPage> {
                           }
                         },
                       ),
+                      if (foto != null)
+                        Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Image.file(foto!, height: 100),
+                        ),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          final token = prefs.getString('auth_token');
+                          if (token == null) {
+                            _showAlert('Token tidak ditemukan!');
+                            return;
+                          }
+
+                          var request = http.MultipartRequest(
+                            'POST',
+                            Uri.parse('${Config.apiUrl}/api/produk/${produk['id']}?_method=PUT'),
+                          );
+                          request.headers['Authorization'] = 'Bearer $token';
+                          request.fields['nama_produk'] = namaProdukController.text;
+                          request.fields['kategori'] = kategoriController.text;
+                          request.fields['harga_jual'] = hargaController.text;
+                          request.fields['stok'] = stokController.text;
+                          request.fields['deskripsi'] = deskripsiController.text;
+
+                          if (foto != null) {
+                            request.files.add(
+                              await http.MultipartFile.fromPath(
+                                'gambar',
+                                foto!.path,
+                              ),
+                            );
+                          }
+
+                          final response = await request.send();
+                          if (response.statusCode == 200) {
+                            Navigator.pop(context);
+                            _fetchProduk();
+                            _showAlert('Produk berhasil diupdate!');
+                          } else {
+                            _showAlert('Gagal update produk.');
+                          }
+                        },
+                        child: Text('Simpan Perubahan'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFD7B44C),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -272,6 +321,7 @@ class _ProdukPageState extends State<ProdukPage> {
     },
   );
 }
+
 
 
   void _confirmDeleteProduk(int id) {
