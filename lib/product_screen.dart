@@ -200,133 +200,79 @@ class _ProdukPageState extends State<ProdukPage> {
   }
 
   void _showEditProdukModal(Map<String, dynamic> produk) {
-    String namaProduk = produk['nama_produk'] ?? '';
-    String kategori = produk['kategori'] ?? '';
-    String harga = produk['harga_jual'].toString();
-    String stok = produk['stok'].toString();
-    String deskripsi = produk['deskripsi'] ?? '';
-    File? foto;
+  // Bikin controller-nya sekali saja
+  final namaProdukController = TextEditingController(text: produk['nama_produk'] ?? '');
+  final kategoriController = TextEditingController(text: produk['kategori'] ?? '');
+  final hargaController = TextEditingController(text: produk['harga_jual'].toString());
+  final stokController = TextEditingController(text: produk['stok'].toString());
+  final deskripsiController = TextEditingController(text: produk['deskripsi'] ?? '');
+  File? foto;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          insetPadding: EdgeInsets.zero,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('Edit Produk'),
-              backgroundColor: Color(0xFFD7B44C),
-            ),
-            body: Padding(
-              padding: EdgeInsets.all(20),
-              child: StatefulBuilder(
-                builder: (context, setModalState) {
-                  return SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        TextField(
-                          decoration: InputDecoration(labelText: 'Nama Produk'),
-                          controller: TextEditingController(text: namaProduk),
-                          onChanged: (val) => namaProduk = val,
-                        ),
-                        TextField(
-                          decoration: InputDecoration(labelText: 'Kategori'),
-                          controller: TextEditingController(text: kategori),
-                          onChanged: (val) => kategori = val,
-                        ),
-                        TextField(
-                          decoration: InputDecoration(labelText: 'Harga Jual'),
-                          keyboardType: TextInputType.number,
-                          controller: TextEditingController(text: harga),
-                          onChanged: (val) => harga = val,
-                        ),
-                        TextField(
-                          decoration: InputDecoration(labelText: 'Stok'),
-                          keyboardType: TextInputType.number,
-                          controller: TextEditingController(text: stok),
-                          onChanged: (val) => stok = val,
-                        ),
-                        TextField(
-                          decoration: InputDecoration(labelText: 'Deskripsi'),
-                          maxLines: 3,
-                          controller: TextEditingController(text: deskripsi),
-                          onChanged: (val) => deskripsi = val,
-                        ),
-                        ElevatedButton.icon(
-                          icon: Icon(Icons.image),
-                          label: Text('Pilih Foto (Opsional)'),
-                          onPressed: () async {
-                            final picker = ImagePicker();
-                            final picked = await picker.pickImage(
-                              source: ImageSource.gallery,
-                            );
-                            if (picked != null) {
-                              setModalState(() => foto = File(picked.path));
-                            }
-                          },
-                        ),
-                        if (foto != null)
-                          Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Image.file(foto!, height: 100),
-                          ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final prefs = await SharedPreferences.getInstance();
-                            final token = prefs.getString('auth_token');
-                            if (token == null) {
-                              _showAlert('Token tidak ditemukan!');
-                              return;
-                            }
-
-                            var request = http.MultipartRequest(
-                              'POST',
-                              Uri.parse(
-                                '${Config.apiUrl}/api/produk/${produk['id']}?_method=PUT',
-                              ),
-                            );
-                            request.headers['Authorization'] = 'Bearer $token';
-                            request.fields['nama_produk'] = namaProduk;
-                            request.fields['kategori'] = kategori;
-                            request.fields['harga_jual'] = harga;
-                            request.fields['stok'] = stok;
-                            request.fields['deskripsi'] = deskripsi;
-
-                            if (foto != null) {
-                              request.files.add(
-                                await http.MultipartFile.fromPath(
-                                  'gambar',
-                                  foto!.path,
-                                ),
-                              );
-                            }
-
-                            final response = await request.send();
-                            if (response.statusCode == 200) {
-                              Navigator.pop(context);
-                              _fetchProduk();
-                              _showAlert('Produk berhasil diupdate!');
-                            } else {
-                              _showAlert('Gagal update produk.');
-                            }
-                          },
-                          child: Text('Simpan Perubahan'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFD7B44C),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        insetPadding: EdgeInsets.zero,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('Edit Produk'),
+            backgroundColor: Color(0xFFD7B44C),
+          ),
+          body: Padding(
+            padding: EdgeInsets.all(20),
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextField(
+                        decoration: InputDecoration(labelText: 'Nama Produk'),
+                        controller: namaProdukController,
+                      ),
+                      TextField(
+                        decoration: InputDecoration(labelText: 'Kategori'),
+                        controller: kategoriController,
+                      ),
+                      TextField(
+                        decoration: InputDecoration(labelText: 'Harga Jual'),
+                        keyboardType: TextInputType.number,
+                        controller: hargaController,
+                      ),
+                      TextField(
+                        decoration: InputDecoration(labelText: 'Stok'),
+                        keyboardType: TextInputType.number,
+                        controller: stokController,
+                      ),
+                      TextField(
+                        decoration: InputDecoration(labelText: 'Deskripsi'),
+                        maxLines: 3,
+                        controller: deskripsiController,
+                      ),
+                      ElevatedButton.icon(
+                        icon: Icon(Icons.image),
+                        label: Text('Pilih Foto (Opsional)'),
+                        onPressed: () async {
+                          final picker = ImagePicker();
+                          final picked = await picker.pickImage(
+                            source: ImageSource.gallery,
+                          );
+                          if (picked != null) {
+                            setModalState(() => foto = File(picked.path));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
 
   void _confirmDeleteProduk(int id) {
     showDialog(
