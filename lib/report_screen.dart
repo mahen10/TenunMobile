@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart'; // ini kunci!
 
 import '../../config.dart'; // Pastikan path sesuai
 
@@ -75,7 +76,6 @@ class _ReportScreenState extends State<ReportScreen> {
       backgroundColor: Colors.yellow[700],
       body: Column(
         children: [
-          // HEADER
           Container(
             padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
             decoration: BoxDecoration(
@@ -120,7 +120,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // PICK BULAN & TAHUN (PAKE DATE PICKER)
+                    // PICK MONTH & YEAR (PAKE MONTH PICKER DIALOG)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -133,14 +133,12 @@ class _ReportScreenState extends State<ReportScreen> {
                         SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () async {
-                            DateTime? picked = await showDatePicker(
+                            final picked = await showMonthPicker(
                               context: context,
                               initialDate: DateTime.now(),
                               firstDate: DateTime(2020),
                               lastDate: DateTime(2100),
-                              helpText: 'Pilih Bulan & Tahun',
                             );
-
                             if (picked != null) {
                               String newMonth = DateFormat('yyyy-MM').format(picked);
                               setState(() {

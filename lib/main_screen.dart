@@ -22,11 +22,6 @@ class _MainScreenState extends State<MainScreen> {
     AccountScreen(), // index 4
   ];
 
-  void _onTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
