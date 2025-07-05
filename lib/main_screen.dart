@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'transaction_screen.dart';
-import 'product_screen.dart';
-import 'report_screen.dart';
-import 'account_screen.dart';
+import 'product_screen.dart'; // Halaman produk
+import 'report_screen.dart'; // Dummy
+import 'account_screen.dart'; // ⬅ Pastikan ini diimpor juga
 
 class MainScreen extends StatefulWidget {
   @override
@@ -13,10 +13,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
+  // ✅ Lengkapi dengan 5 halaman sesuai navbar
   final List<Widget> _pages = [
-    HomeScreen(),
-    TransactionScreen(),
-
+    HomeScreen(), // index 0
+    TransactionScreen(), // index 1
+    ProdukPage(), // index 2
+    ReportScreen(), // index 3
+    AccountScreen(), // index 4
   ];
 
   void _onTap(int index) {
@@ -29,19 +32,26 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onTap,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Transaksi'),
-          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Produk'),
-          BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Laporan'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Akun'),
-        ],
-        selectedItemColor: Colors.yellow[700],
-        unselectedItemColor: Colors.grey,
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   currentIndex: _selectedIndex,
+      //   onTap: _onTap,
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.receipt),
+      //       label: 'Transaksi',
+      //     ),
+      //     BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Produk'),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.description),
+      //       label: 'Laporan',
+      //     ),
+      //     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Akun'),
+      //   ],
+      //   selectedItemColor: Colors.yellow,
+      //   unselectedItemColor: Colors.grey,
+      //   type: BottomNavigationBarType.fixed,
+      // ),
     );
   }
 }

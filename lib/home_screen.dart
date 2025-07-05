@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tenunapp/account_screen.dart';
+import 'package:tenunapp/report_screen.dart';
 import 'config.dart';
 import 'package:intl/intl.dart';
 import 'transaction_screen.dart';
+import 'product_screen.dart'; // ✅ Ganti dari produk.dart ke product_screen.dart
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -58,13 +61,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // ✅ Daftar halaman bawah sesuai navbar
   List<Widget> get _pages => [
-        HomeContent(products: products, vendorName: vendorName ?? 'Admin Vendor'),
-        TransactionScreen(),
-        Center(child: Text('Produk Page', style: TextStyle(fontSize: 24))),
-        Center(child: Text('Laporan Page', style: TextStyle(fontSize: 24))),
-        Center(child: Text('Akun Page', style: TextStyle(fontSize: 24))),
-      ];
+    HomeContent(products: products, vendorName: vendorName ?? 'Admin Vendor'),
+    TransactionScreen(),
+    ProdukPage(), // ✅ Ini penting! jangan pakai dummy lagi
+    ReportScreen(),
+    AccountScreen()
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -74,12 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.yellow[700],
         elevation: 0,
-        toolbarHeight: 0, // Menyembunyikan tinggi AppBar
+        toolbarHeight: 0,
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.yellow[700],
@@ -91,11 +92,17 @@ class _HomeScreenState extends State<HomeScreen> {
         child: BottomNavigationBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          items: [
+          items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Transaksi'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt),
+              label: 'Transaksi',
+            ),
             BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Produk'),
-            BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Laporan'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.description),
+              label: 'Laporan',
+            ),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Akun'),
           ],
           currentIndex: _selectedIndex,
@@ -148,8 +155,18 @@ class HomeContent extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Selamat Datang', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text(vendorName, style: TextStyle(color: Colors.black87, fontSize: 14)),
+                    Text(
+                      'Selamat Datang',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Text(
+                      vendorName,
+                      style: TextStyle(color: Colors.black87, fontSize: 14),
+                    ),
                   ],
                 ),
               ],
@@ -167,9 +184,15 @@ class HomeContent extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Tahun', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Tahun',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 10),
-                  Container(height: 150, child: CustomPaint(painter: BarChartPainter())),
+                  Container(
+                    height: 150,
+                    child: CustomPaint(painter: BarChartPainter()),
+                  ),
                 ],
               ),
             ),
@@ -180,17 +203,23 @@ class HomeContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 16),
-                Text('Produk Tenun', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  'Produk Tenun',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 10),
-                ...products.map((product) => ProductCard(
-                      image: 'assets/${product['gambar'] ?? 'default.jpg'}',
-                      name: product['nama_produk'],
-                      category: 'Kategori: ${product['kategori'] ?? 'Unknown'}',
-                      stock: 'Stok: ${product['stok'] ?? 0}',
-                      price: product['harga_jual'] != null
-                          ? 'Rp ${numberFormat.format(product['harga_jual'])}'
-                          : 'Rp 0',
-                    )),
+                ...products.map(
+                  (product) => ProductCard(
+                    image: 'assets/${product['gambar'] ?? 'default.jpg'}',
+                    name: product['nama_produk'],
+                    category: 'Kategori: ${product['kategori'] ?? 'Unknown'}',
+                    stock: 'Stok: ${product['stok'] ?? 0}',
+                    price:
+                        product['harga_jual'] != null
+                            ? 'Rp ${numberFormat.format(product['harga_jual'])}'
+                            : 'Rp 0',
+                  ),
+                ),
               ],
             ),
           ),
@@ -232,7 +261,13 @@ class ProductCard extends StatelessWidget {
   final String stock;
   final String price;
 
-  ProductCard({required this.image, required this.name, required this.category, required this.stock, required this.price});
+  ProductCard({
+    required this.image,
+    required this.name,
+    required this.category,
+    required this.stock,
+    required this.price,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +282,10 @@ class ProductCard extends StatelessWidget {
         title: Text(name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Text(category, style: TextStyle(color: Colors.blue)), Text(stock)],
+          children: [
+            Text(category, style: TextStyle(color: Colors.blue)),
+            Text(stock),
+          ],
         ),
         trailing: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -262,4 +300,8 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-final numberFormat = NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 0);
+final numberFormat = NumberFormat.currency(
+  locale: 'id_ID',
+  symbol: '',
+  decimalDigits: 0,
+);

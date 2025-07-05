@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (token != null) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('auth_token', token);
-            Navigator.pushReplacementNamed(context, '/home');
+            Navigator.pushReplacementNamed(context, '/main');
           } else {
             setState(() {
               _errorMessage = 'Token tidak ditemukan dalam respons';

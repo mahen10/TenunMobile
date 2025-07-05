@@ -1,7 +1,10 @@
-// transaction_screen.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:tenunapp/config.dart';
 
 class TransactionScreen extends StatefulWidget {
   @override
@@ -10,20 +13,77 @@ class TransactionScreen extends StatefulWidget {
 
 class _TransactionScreenState extends State<TransactionScreen> {
   bool isPembelian = true;
+  List<dynamic> _pembelian = [];
+  List<dynamic> _penjualan = [];
+  List<dynamic> produkList = []; // Tambahkan ini di atas
 
-  // Placeholder untuk data pembelian/penjualan dari database
-  final List<Map<String, String>> _pembelian = [];
-  final List<Map<String, String>> _penjualan = [];
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final responses = await Future.wait([
+        http.get(
+          Uri.parse('${Config.apiUrl}/api/pembelian-bahan'),
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+        http.get(
+          Uri.parse('${Config.apiUrl}/api/penjualan'),
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+        http.get(
+          // FETCH PRODUK SEKALIAN!
+          Uri.parse('${Config.apiUrl}/api/produk'),
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      ]);
+
+      setState(() {
+        _pembelian =
+            responses[0].statusCode == 200
+                ? json.decode(responses[0].body)
+                : [];
+        _penjualan =
+            responses[1].statusCode == 200
+                ? json.decode(responses[1].body)
+                : [];
+        produkList =
+            responses[2].statusCode == 200
+                ? json.decode(responses[2].body)
+                : [];
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+    }
+  }
 
   void _navigateToAddTransaction() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => isPembelian
-            ? TambahPembelianScreen()
-            : TambahPenjualanScreen(),
+        builder:
+            (context) =>
+                isPembelian
+                    ? TambahPembelianScreen(onSaved: _fetchData)
+                    : TambahPenjualanScreen(onSaved: _fetchData),
       ),
     );
+  }
+
+  String _getNamaProduk(dynamic produkId) {
+    final produk = produkList.firstWhere(
+      (p) => p['id'].toString() == produkId.toString(),
+      orElse: () => {'nama_produk': 'Produk Tidak Ditemukan'},
+    );
+    return produk['nama_produk'];
   }
 
   @override
@@ -34,13 +94,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
         children: [
           Container(
             padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
-            decoration: BoxDecoration(
-              color: Colors.yellow[700],
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(50),
-                bottomRight: Radius.circular(50),
-              ),
-            ),
             child: Row(
               children: [
                 Icon(Icons.arrow_back, color: Colors.black),
@@ -58,7 +111,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
           ),
           Expanded(
             child: Container(
-              width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -85,23 +137,52 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               GestureDetector(
                                 onTap: () => setState(() => isPembelian = true),
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isPembelian ? Colors.black : Colors.transparent,
+                                    color:
+                                        isPembelian
+                                            ? Colors.black
+                                            : Colors.transparent,
                                     borderRadius: BorderRadius.circular(30),
                                   ),
-                                  child: Text("Pembelian", style: TextStyle(color: isPembelian ? Colors.white : Colors.black)),
+                                  child: Text(
+                                    "Pembelian",
+                                    style: TextStyle(
+                                      color:
+                                          isPembelian
+                                              ? Colors.white
+                                              : Colors.black,
+                                    ),
+                                  ),
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () => setState(() => isPembelian = false),
+                                onTap:
+                                    () => setState(() => isPembelian = false),
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: !isPembelian ? Colors.black : Colors.transparent,
+                                    color:
+                                        !isPembelian
+                                            ? Colors.black
+                                            : Colors.transparent,
                                     borderRadius: BorderRadius.circular(30),
                                   ),
-                                  child: Text("Penjualan", style: TextStyle(color: !isPembelian ? Colors.white : Colors.black)),
+                                  child: Text(
+                                    "Penjualan",
+                                    style: TextStyle(
+                                      color:
+                                          !isPembelian
+                                              ? Colors.white
+                                              : Colors.black,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -113,57 +194,97 @@ class _TransactionScreenState extends State<TransactionScreen> {
                             children: [
                               Icon(Icons.add_circle, color: Colors.cyan),
                               SizedBox(width: 5),
-                              Text(isPembelian ? 'Pembelian' : 'Penjualan', style: GoogleFonts.poppins(fontWeight: FontWeight.bold))
+                              Text(
+                                isPembelian ? 'Pembelian' : 'Penjualan',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
-                    SizedBox(height: 16),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: isPembelian ? 'Cari Bahan' : 'Cari Produk',
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text('Cari'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
                     SizedBox(height: 20),
-                    Text(isPembelian ? 'Pembelian Bahan' : 'Penjualan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 10),
                     Expanded(
                       child: ListView.builder(
-                        itemCount: isPembelian ? _pembelian.length : _penjualan.length,
+                        itemCount:
+                            isPembelian ? _pembelian.length : _penjualan.length,
                         itemBuilder: (context, index) {
-                          final transaction = isPembelian ? _pembelian[index] : _penjualan[index];
-                          return _buildItem(
-                            transaction['name'] ?? '-',
-                            transaction['jumlah'] ?? '0',
-                            transaction['total'] ?? '0',
-                            transaction['date'] ?? '-',
-                            transaction['image'] ?? 'assets/default.png',
+                          final data =
+                              isPembelian
+                                  ? _pembelian[index]
+                                  : _penjualan[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            elevation: 3,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Ikon
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      width: 65,
+                                      height: 65,
+                                      color: Colors.yellow[100],
+                                      child: Icon(
+                                        isPembelian
+                                            ? Icons.shopping_cart
+                                            : Icons.sell,
+                                        size: 36,
+                                        color: Colors.brown,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  // Info Transaksi
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          isPembelian
+                                              ? data['nama_bahan']
+                                              : _getNamaProduk(
+                                                data['produk_id'],
+                                              ),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          isPembelian
+                                              ? 'Jumlah: ${data['jumlah']} | Total: Rp${data['harga_total']}'
+                                              : 'Jumlah: ${data['jumlah_terjual']} | Total: Rp${data['total_harga']}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Tanggal: ${data[isPembelian ? 'tanggal_pembelian' : 'tanggal_penjualan']}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 13,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -177,263 +298,226 @@ class _TransactionScreenState extends State<TransactionScreen> {
       ),
     );
   }
-
-  Widget _buildItem(String name, String jumlah, String total, String date, String imageAsset) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Image.asset(imageAsset, width: 50, height: 50, fit: BoxFit.cover),
-      ),
-      title: Text(name, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Jumlah: $jumlah', style: GoogleFonts.poppins()),
-          Text('Total: Rp $total', style: GoogleFonts.poppins(color: Colors.blue)),
-        ],
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(date, style: GoogleFonts.poppins(fontSize: 12)),
-          Text('Detail', style: GoogleFonts.poppins(color: Colors.teal)),
-        ],
-      ),
-    );
-  }
 }
 
+// Tambah Pembelian
 class TambahPembelianScreen extends StatefulWidget {
+  final VoidCallback onSaved;
+  TambahPembelianScreen({required this.onSaved});
+
   @override
   State<TambahPembelianScreen> createState() => _TambahPembelianScreenState();
 }
 
 class _TambahPembelianScreenState extends State<TambahPembelianScreen> {
-  TextEditingController dateController = TextEditingController();
+  final _namaController = TextEditingController();
+  final _jumlahController = TextEditingController();
+  final _hargaController = TextEditingController();
+  final _tanggalController = TextEditingController();
+
+  Future<void> _simpanPembelian() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    await http.post(
+      Uri.parse('${Config.apiUrl}/api/pembelian-bahan'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'nama_bahan': _namaController.text,
+        'jumlah': int.parse(_jumlahController.text),
+        'harga_total': double.parse(_hargaController.text),
+        'tanggal_pembelian': _tanggalController.text,
+      }),
+    );
+
+    widget.onSaved();
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.yellow[700],
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
-            child: Row(
-              children: [
-                IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.arrow_back)),
-                SizedBox(width: 16),
-                Text('Tambah Pembelian', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold))
-              ],
+      appBar: AppBar(title: Text('Tambah Pembelian')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _namaController,
+              decoration: InputDecoration(labelText: 'Nama Bahan'),
             ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ),
-              ),
-              padding: EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  _buildField('Nama Bahan'),
-                  _buildField('Jumlah Dibeli', isNumber: true),
-                  _buildField('Total Harga', isNumber: true),
-                  _buildDateField(dateController),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow[700],
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      minimumSize: Size(150, 50),
-                    ),
-                    child: Text('Simpan', style: GoogleFonts.poppins(color: Colors.black)),
-                  )
-                ],
-              ),
+            TextField(
+              controller: _jumlahController,
+              decoration: InputDecoration(labelText: 'Jumlah'),
+              keyboardType: TextInputType.number,
             ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildField(String hint, {bool isNumber = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        decoration: InputDecoration(
-          hintText: hint,
-          filled: true,
-          fillColor: Colors.green[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateField(TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
-        controller: controller,
-        readOnly: true,
-        onTap: () async {
-          DateTime? picked = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-          );
-          if (picked != null) {
-            controller.text = DateFormat('dd/MM/yyyy').format(picked);
-          }
-        },
-        decoration: InputDecoration(
-          hintText: 'Tanggal Pembelian',
-          filled: true,
-          fillColor: Colors.green[50],
-          suffixIcon: Icon(Icons.calendar_today, size: 20),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
+            TextField(
+              controller: _hargaController,
+              decoration: InputDecoration(labelText: 'Harga Total'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _tanggalController,
+              readOnly: true,
+              decoration: InputDecoration(labelText: 'Tanggal Pembelian'),
+              onTap: () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (picked != null) {
+                  _tanggalController.text = DateFormat(
+                    'yyyy-MM-dd',
+                  ).format(picked);
+                }
+              },
+            ),
+            ElevatedButton(onPressed: _simpanPembelian, child: Text('Simpan')),
+          ],
         ),
       ),
     );
   }
 }
 
-class TambahPenjualanScreen extends StatelessWidget {
+// Tambah Penjualan
+class TambahPenjualanScreen extends StatefulWidget {
+  final VoidCallback onSaved;
+  TambahPenjualanScreen({required this.onSaved});
+
+  @override
+  State<TambahPenjualanScreen> createState() => _TambahPenjualanScreenState();
+}
+
+class _TambahPenjualanScreenState extends State<TambahPenjualanScreen> {
+  List<dynamic> produkList = [];
+  int? selectedProdukId;
+  final _jumlahController = TextEditingController();
+  final _tanggalController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProduk();
+  }
+
+  Future<void> _fetchProduk() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.get(
+      Uri.parse('${Config.apiUrl}/api/produk'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        produkList = json.decode(response.body);
+      });
+    }
+  }
+
+  Future<void> _simpanPenjualan() async {
+    if (selectedProdukId == null ||
+        _jumlahController.text.isEmpty ||
+        _tanggalController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Harap lengkapi semua data')));
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.post(
+      Uri.parse('${Config.apiUrl}/api/penjualan'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'produk_id': selectedProdukId,
+        'jumlah_terjual': int.parse(_jumlahController.text),
+        'tanggal_penjualan': _tanggalController.text,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      widget.onSaved();
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Penjualan berhasil disimpan!')));
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan penjualan.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.yellow[700],
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
-            child: Row(
-              children: [
-                IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.arrow_back)),
-                SizedBox(width: 16),
-                Text('Tambah Penjualan', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold))
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
+      appBar: AppBar(title: Text('Tambah Penjualan')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            DropdownButtonFormField<int>(
+              value: selectedProdukId,
+              items:
+                  produkList.map((produk) {
+                    return DropdownMenuItem<int>(
+                      value: produk['id'],
+                      child: Text(produk['nama_produk']),
+                    );
+                  }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedProdukId = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Pilih Produk',
+                filled: true,
+                fillColor: Colors.green[50],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
                 ),
               ),
-              padding: EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  _buildDropdown('Pilih Produk'),
-                  _buildField('Jumlah Terjual', isNumber: true),
-                  _buildField('Total Harga', isNumber: true),
-                  _buildDateField(context),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow[700],
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      minimumSize: Size(150, 50),
-                    ),
-                    child: Text('Simpan', style: GoogleFonts.poppins(color: Colors.black)),
-                  )
-                ],
-              ),
             ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDropdown(String hint) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.green[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        hint: Text(hint),
-        items: ['Produk 1', 'Produk 2']
-            .map((item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                ))
-            .toList(),
-        onChanged: (value) {},
-      ),
-    );
-  }
-
-  Widget _buildField(String hint, {bool isNumber = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        decoration: InputDecoration(
-          hintText: hint,
-          filled: true,
-          fillColor: Colors.green[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateField(BuildContext context) {
-    TextEditingController controller = TextEditingController();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
-        controller: controller,
-        readOnly: true,
-        onTap: () async {
-          DateTime? picked = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-          );
-          if (picked != null) {
-            controller.text = DateFormat('dd/MM/yyyy').format(picked);
-          }
-        },
-        decoration: InputDecoration(
-          hintText: 'Tanggal Penjualan',
-          filled: true,
-          fillColor: Colors.green[50],
-          suffixIcon: Icon(Icons.calendar_today, size: 20),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
+            TextField(
+              controller: _jumlahController,
+              decoration: InputDecoration(labelText: 'Jumlah Terjual'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _tanggalController,
+              readOnly: true,
+              decoration: InputDecoration(labelText: 'Tanggal Penjualan'),
+              onTap: () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (picked != null) {
+                  _tanggalController.text = DateFormat(
+                    'yyyy-MM-dd',
+                  ).format(picked);
+                }
+              },
+            ),
+            ElevatedButton(onPressed: _simpanPenjualan, child: Text('Simpan')),
+          ],
         ),
       ),
     );
