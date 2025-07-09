@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 
+
 class AccountScreen extends StatefulWidget {
   @override
   _AccountScreenState createState() => _AccountScreenState();
@@ -21,38 +22,39 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _fetchUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    print('Token: $token');
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  print('Token: $token');
 
-    if (token != null) {
-      final response = await http.get(
-        Uri.parse('${Config.apiUrl}/api/user'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
+  if (token != null) {
+    final response = await http.get(
+      Uri.parse('${Config.apiUrl}/api/user'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
 
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
+    print('Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          namaPengguna = data['name'];
-          emailPengguna = data['email'];
-        });
-      } else {
-        setState(() {
-          namaPengguna = 'Gagal memuat';
-          emailPengguna = 'Gagal memuat';
-        });
-      }
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        namaPengguna = data['name'];
+        emailPengguna = data['email'];
+      });
     } else {
-      print('Token not found!');
+      setState(() {
+        namaPengguna = 'Gagal memuat';
+        emailPengguna = 'Gagal memuat';
+      });
     }
+  } else {
+    print('Token not found!');
   }
+}
+
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();

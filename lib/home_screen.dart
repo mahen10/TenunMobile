@@ -8,6 +8,7 @@ import 'config.dart';
 import 'package:intl/intl.dart';
 import 'transaction_screen.dart';
 import 'product_screen.dart'; // ✅ Ganti dari produk.dart ke product_screen.dart
+import 'package:tenunapp/widgets/yearly_sales_chart.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TransactionScreen(),
     ProdukPage(), // ✅ Ini penting! jangan pakai dummy lagi
     ReportScreen(),
-    AccountScreen()
+    AccountScreen(),
   ];
 
   @override
@@ -184,19 +185,12 @@ class HomeContent extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Tahun',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Container(
-                    height: 150,
-                    child: CustomPaint(painter: BarChartPainter()),
-                  ),
+                  YearlySalesChart(), // <-- Ganti bar chart dummy jadi ini
                 ],
               ),
             ),
           ),
+
           Padding(
             padding: EdgeInsets.all(16),
             child: Column(
