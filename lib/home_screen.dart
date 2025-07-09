@@ -7,28 +7,7 @@ import 'package:tenunapp/report_screen.dart';
 import 'config.dart';
 import 'package:intl/intl.dart';
 import 'transaction_screen.dart';
-import 'product_screen.dart';
-import 'package:fl_chart/fl_chart.dart';
-
-Future<List<Map<String, dynamic>>> fetchGrafikData() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
-  if (token == null) return [];
-
-  try {
-    final response = await http.get(
-      Uri.parse('${Config.apiUrl}/api/laporan-bulanan/grafik-penjualan?tahun=2025'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
-    }
-  } catch (e) {
-    print('Error grafik: $e');
-  }
-  return [];
-}
+import 'product_screen.dart'; // ✅ Ganti dari produk.dart ke product_screen.dart
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -82,12 +61,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // ✅ Daftar halaman bawah sesuai navbar
   List<Widget> get _pages => [
     HomeContent(products: products, vendorName: vendorName ?? 'Admin Vendor'),
     TransactionScreen(),
-    ProdukPage(),
+    ProdukPage(), // ✅ Ini penting! jangan pakai dummy lagi
     ReportScreen(),
-    AccountScreen(),
+    AccountScreen()
   ];
 
   @override
@@ -210,91 +190,8 @@ class HomeContent extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   Container(
-                    height: 200,
-                    child: FutureBuilder<List<Map<String, dynamic>>>(
-                      future: fetchGrafikData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError || !snapshot.hasData) {
-                          return Text('Gagal memuat grafik');
-                        }
-
-                        final data = snapshot.data!;
-                        print('Data Grafik: $data'); // Debugging Data API
-
-                        final spots =
-                            data.map((entry) {
-                              final bulanNumber =
-                                  (entry['bulan'] as num).toDouble();
-                              final penjualan =
-                                  (entry['total_penjualan'] as num).toDouble();
-                              return FlSpot(bulanNumber, penjualan);
-                            }).toList();
-
-                        return LineChart(
-                          LineChartData(
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: spots,
-                                isCurved: false, // Garis lurus seperti contohmu
-                                color: Colors.black,
-                                barWidth: 4,
-                                dotData: FlDotData(
-                                  show: true, // ✅ Titik bulat muncul
-                                  getDotPainter:
-                                      (spot, percent, barData, index) =>
-                                          FlDotCirclePainter(
-                                            radius: 6,
-                                            color: Colors.black,
-                                            strokeWidth: 2,
-                                            strokeColor: Colors.white,
-                                          ),
-                                ),
-                                belowBarData: BarAreaData(show: false),
-                              ),
-                            ],
-                            titlesData: FlTitlesData(
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: true),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: (value, meta) {
-                                    final bulanNames = [
-                                      'Jan',
-                                      'Feb',
-                                      'Mar',
-                                      'Apr',
-                                      'Mei',
-                                      'Jun',
-                                      'Jul',
-                                      'Agu',
-                                      'Sep',
-                                      'Okt',
-                                      'Nov',
-                                      'Des',
-                                    ];
-                                    int index = value.toInt() - 1;
-                                    if (index >= 0 && index < 12) {
-                                      return Text(
-                                        bulanNames[index],
-                                        style: TextStyle(fontSize: 10),
-                                      );
-                                    }
-                                    return Text('');
-                                  },
-                                ),
-                              ),
-                            ),
-                            gridData: FlGridData(show: true),
-                            borderData: FlBorderData(show: false),
-                          ),
-                        );
-                      },
-                    ),
+                    height: 150,
+                    child: CustomPaint(painter: BarChartPainter()),
                   ),
                 ],
               ),
@@ -330,6 +227,31 @@ class HomeContent extends StatelessWidget {
       ),
     );
   }
+}
+
+class BarChartPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.blue;
+    final List<double> data = [2, 5, 8, 3];
+    final maxValue = 10.0;
+    final barWidth = size.width / data.length / 1.5;
+    final barSpacing = barWidth / 2;
+
+    for (int i = 0; i < data.length; i++) {
+      final barHeight = (data[i] / maxValue) * (size.height - 20);
+      final rect = Rect.fromLTWH(
+        i * (barWidth + barSpacing),
+        size.height - barHeight,
+        barWidth,
+        barHeight,
+      );
+      canvas.drawRect(rect, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class ProductCard extends StatelessWidget {

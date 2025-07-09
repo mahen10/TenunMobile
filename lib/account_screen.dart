@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'config.dart';
 
 class AccountScreen extends StatefulWidget {
   @override
@@ -8,28 +11,52 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  String namaPengguna = '';
-  String emailPengguna = '';
+  String namaPengguna = 'Loading...';
+  String emailPengguna = 'Loading...';
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _fetchUserData();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _fetchUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      namaPengguna = prefs.getString('nama') ?? 'Nama Pengguna';
-      emailPengguna = prefs.getString('email') ?? 'email@email.com';
-    });
+    final token = prefs.getString('auth_token');
+    print('Token: $token');
+
+    if (token != null) {
+      final response = await http.get(
+        Uri.parse('${Config.apiUrl}/api/user'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          namaPengguna = data['name'];
+          emailPengguna = data['email'];
+        });
+      } else {
+        setState(() {
+          namaPengguna = 'Gagal memuat';
+          emailPengguna = 'Gagal memuat';
+        });
+      }
+    } else {
+      print('Token not found!');
+    }
   }
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
-    await prefs.remove('nama');
-    await prefs.remove('email');
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -39,7 +66,6 @@ class _AccountScreenState extends State<AccountScreen> {
       backgroundColor: Colors.yellow[700],
       body: Column(
         children: [
-          // HEADER
           Container(
             padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
             decoration: BoxDecoration(
@@ -48,7 +74,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 bottomLeft: Radius.circular(50),
                 bottomRight: Radius.circular(50),
               ),
-            
             ),
             child: Row(
               children: [
@@ -65,7 +90,6 @@ class _AccountScreenState extends State<AccountScreen> {
               ],
             ),
           ),
-          // BODY
           Expanded(
             child: Container(
               width: double.infinity,
@@ -93,10 +117,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    emailPengguna,
-                    style: GoogleFonts.poppins(),
-                  ),
+                  Text(emailPengguna, style: GoogleFonts.poppins()),
                   SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () {
