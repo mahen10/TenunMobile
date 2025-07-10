@@ -7,7 +7,7 @@ import 'package:tenunapp/report_screen.dart';
 import 'config.dart';
 import 'package:intl/intl.dart';
 import 'transaction_screen.dart';
-import 'product_screen.dart'; // ✅ Ganti dari produk.dart ke product_screen.dart
+import 'product/product_screen.dart';
 import 'package:tenunapp/widgets/yearly_sales_chart.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,7 +18,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> products = [];
   String? vendorName;
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -56,164 +55,211 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  // ✅ Daftar halaman bawah sesuai navbar
-  List<Widget> get _pages => [
-    HomeContent(products: products, vendorName: vendorName ?? 'Admin Vendor'),
-    TransactionScreen(),
-    ProdukPage(), // ✅ Ini penting! jangan pakai dummy lagi
-    ReportScreen(),
-    AccountScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.yellow[700],
+      backgroundColor: Color(0xFFF9FAFB),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.yellow[700],
+        backgroundColor: Colors.transparent,
         elevation: 0,
         toolbarHeight: 0,
       ),
-      body: IndexedStack(index: _selectedIndex, children: _pages),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.yellow[700],
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.receipt),
-              label: 'Transaksi',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Produk'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.description),
-              label: 'Laporan',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Akun'),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.white,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-        ),
-      ),
+      body: HomeContent(vendorName: vendorName ?? 'Admin Vendor'),
     );
   }
 }
 
 class HomeContent extends StatelessWidget {
-  final List<dynamic> products;
   final String vendorName;
 
-  HomeContent({this.products = const [], required this.vendorName});
+  HomeContent({required this.vendorName});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(40),
-          topRight: Radius.circular(40),
-        ),
-      ),
-      child: ListView(
+    return SingleChildScrollView(
+      child: Column(
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.yellow[700],
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(50),
-                bottomRight: Radius.circular(50),
+              gradient: LinearGradient(
+                colors: [Color.fromRGBO(252, 211, 77, 1), Color.fromRGBO(251, 191, 36, 1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: AssetImage('assets/user.png'),
-                  radius: 30,
-                ),
-                SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Selamat Datang',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24, 20, 24, 28),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => AccountScreen()),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
                       ),
                     ),
-                    Text(
-                      vendorName,
-                      style: TextStyle(color: Colors.black87, fontSize: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: Image.asset(
+                              'assets/images/user.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Selamat Datang',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                vendorName,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.chevron_right,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.lightGreen[100],
-                borderRadius: BorderRadius.circular(30),
-              ),
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  YearlySalesChart(), // <-- Ganti bar chart dummy jadi ini
-                ],
-              ),
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 16),
-                Text(
-                  'Produk Tenun',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                ...products.map(
-                  (product) => ProductCard(
-                    image: 'assets/${product['gambar'] ?? 'default.jpg'}',
-                    name: product['nama_produk'],
-                    category: 'Kategori: ${product['kategori'] ?? 'Unknown'}',
-                    stock: 'Stok: ${product['stok'] ?? 0}',
-                    price:
-                        product['harga_jual'] != null
-                            ? 'Rp ${numberFormat.format(product['harga_jual'])}'
-                            : 'Rp 0',
                   ),
                 ),
+              ),
+            ),
+          ),
+          Container(
+            color: Color(0xFFF9FAFB),
+            child: Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  height: 420,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 30,
+                        offset: Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(5),
+                    child: Column(
+                      children: [
+                        Expanded(child: YearlySalesChart()),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: [
+                      _MinimalMenuCard(
+                        icon: Icons.receipt_outlined,
+                        title: 'Transaksi',
+                        color: Color(0xFF34D399),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => TransactionScreen()),
+                          );
+                        },
+                      ),
+                      _MinimalMenuCard(
+                        icon: Icons.inventory_2_outlined,
+                        title: 'Produk',
+                        color: Color(0xFF60A5FA),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => ProdukPage()),
+                          );
+                        },
+                      ),
+                      _MinimalMenuCard(
+                        icon: Icons.analytics_outlined,
+                        title: 'Laporan',
+                        color: Color(0xFFA78BFA),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => ReportScreen()),
+                          );
+                        },
+                      ),
+                      _MinimalMenuCard(
+                        icon: Icons.settings_outlined,
+                        title: 'Pengaturan',
+                        color: Color(0xFF9CA3AF),
+                        onTap: () {
+                          // Tambahkan halaman setting jika ada
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 15),
               ],
             ),
           ),
@@ -223,70 +269,61 @@ class HomeContent extends StatelessWidget {
   }
 }
 
-class BarChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.blue;
-    final List<double> data = [2, 5, 8, 3];
-    final maxValue = 10.0;
-    final barWidth = size.width / data.length / 1.5;
-    final barSpacing = barWidth / 2;
+class _MinimalMenuCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color color;
+  final VoidCallback onTap;
 
-    for (int i = 0; i < data.length; i++) {
-      final barHeight = (data[i] / maxValue) * (size.height - 20);
-      final rect = Rect.fromLTWH(
-        i * (barWidth + barSpacing),
-        size.height - barHeight,
-        barWidth,
-        barHeight,
-      );
-      canvas.drawRect(rect, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class ProductCard extends StatelessWidget {
-  final String image;
-  final String name;
-  final String category;
-  final String stock;
-  final String price;
-
-  ProductCard({
-    required this.image,
-    required this.name,
-    required this.category,
-    required this.stock,
-    required this.price,
+  const _MinimalMenuCard({
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(image, width: 50, height: 50, fit: BoxFit.cover),
-        ),
-        title: Text(name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(category, style: TextStyle(color: Colors.blue)),
-            Text(stock),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 20,
+              offset: Offset(0, 8),
+            ),
           ],
         ),
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(price),
-            TextButton(onPressed: () {}, child: Text('Detail')),
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 24,
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF374151),
+              ),
+            ),
           ],
         ),
       ),

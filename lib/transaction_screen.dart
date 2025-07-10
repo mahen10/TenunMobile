@@ -89,7 +89,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.yellow[700],
+      backgroundColor: const Color.fromRGBO(251, 192, 45, 1),
       body: Column(
         children: [
           Container(

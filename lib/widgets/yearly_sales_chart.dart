@@ -104,88 +104,107 @@ class _YearlySalesChartState extends State<YearlySalesChart> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFFE8DDD4).withOpacity(0.3),
-            blurRadius: 20,
-            offset: Offset(0, 8),
+            color: Color(0xFFE8DDD4).withOpacity(0.15),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Header section
+          // Header section - more compact
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    "Grafik Penjualan",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF6B5B47),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color.fromRGBO(251, 192, 45, 1),
+                      
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.trending_up_rounded,
+                      color: Colors.white,
+                      size: 16,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    "Analisis penjualan Tahunan",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF8B7355).withOpacity(0.8),
-                      fontWeight: FontWeight.w400,
-                    ),
+                  SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Penjualan',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      Text(
+                        'Grafik tahunan',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Color(0xFFE8DDD4),
-                      Color(0xFFD4C4A8),
+                      Color.fromRGBO(247, 192, 55, 1),
+                      Color.fromRGBO(243, 192, 61, 1),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0xFFD4C4A8).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
+                      color: Color.fromARGB(255, 246, 246, 246).withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
                 child: InkWell(
                   onTap: _pickYear,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.calendar_today,
-                        size: 16,
-                        color: Color(0xFF6B5B47),
+                        size: 14,
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
-                      SizedBox(width: 8),
+                      SizedBox(width: 6),
                       Text(
                         selectedYear.toString(),
                         style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF6B5B47),
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
-                      SizedBox(width: 4),
+                      SizedBox(width: 2),
                       Icon(
                         Icons.arrow_drop_down,
-                        size: 18,
+                        size: 16,
                         color: Color(0xFF6B5B47),
                       ),
                     ],
@@ -194,264 +213,259 @@ class _YearlySalesChartState extends State<YearlySalesChart> {
               ),
             ],
           ),
-          
-          SizedBox(height: 24),
-          
-          // Chart section
+
+          SizedBox(height: 16),
+
+          // Chart section - reduced height
           Container(
-            height: 300,
+            height: 240,
             decoration: BoxDecoration(
               color: Color(0xFFF8F6F0),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: Color(0xFFE8DDD4).withOpacity(0.5),
                 width: 1,
               ),
             ),
-            padding: EdgeInsets.all(16),
-            child: isLoading
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF8B7355),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          "Memuat data...",
-                          style: TextStyle(
-                            color: Color(0xFF8B7355),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : chartData.isEmpty
+            padding: EdgeInsets.all(12),
+            child:
+                isLoading
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.trending_up,
-                              size: 48,
-                              color: Color(0xFF8B7355).withOpacity(0.5),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              "Tidak ada data penjualan",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF6B5B47),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF8B7355),
                               ),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              "untuk tahun ${selectedYear}",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF8B7355).withOpacity(0.8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : LineChart(
-                        LineChartData(
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: chartData.map((e) {
-                                final bulan = (e['bulan'] as int).toDouble();
-                                final total = num.tryParse(
-                                  e['total_penjualan'].toString(),
-                                )?.toDouble() ?? 0.0;
-                                return FlSpot(bulan, total);
-                              }).toList(),
-                              isCurved: true,
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            "Memuat data...",
+                            style: TextStyle(
                               color: Color(0xFF8B7355),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color(0xFF8B7355),
-                                  Color(0xFFB8A082),
-                                ],
-                              ),
-                              dotData: FlDotData(
-                                show: true,
-                                getDotPainter: (spot, percent, barData, index) {
-                                  return FlDotCirclePainter(
-                                    radius: 4,
-                                    color: Color(0xFF6B5B47),
-                                    strokeWidth: 2,
-                                    strokeColor: Colors.white,
-                                  );
-                                },
-                              ),
-                              barWidth: 3,
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF8B7355).withOpacity(0.3),
-                                    Color(0xFF8B7355).withOpacity(0.1),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                            ),
-                          ],
-                          borderData: FlBorderData(
-                            show: true,
-                            border: Border.all(
-                              color: Color(0xFFE8DDD4),
-                              width: 1,
+                              fontSize: 12,
                             ),
                           ),
-                          gridData: FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                            horizontalInterval: null,
-                            getDrawingHorizontalLine: (value) => FlLine(
-                              color: Color(0xFFE8DDD4).withOpacity(0.5),
-                              strokeWidth: 1,
+                        ],
+                      ),
+                    )
+                    : chartData.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.trending_up,
+                            size: 40,
+                            color: Color(0xFF8B7355).withOpacity(0.5),
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            "Tidak ada data penjualan",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF6B5B47),
                             ),
                           ),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 60,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(
-                                    NumberFormat.compactCurrency(
-                                      locale: 'id_ID',
-                                      symbol: 'Rp ',
-                                      decimalDigits: 0,
-                                    ).format(value),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xFF8B7355),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 32,
-                                interval: 1,
-                                getTitlesWidget: (value, meta) {
-                                  const months = [
-                                    '',
-                                    'Jan',
-                                    'Feb',
-                                    'Mar',
-                                    'Apr',
-                                    'Mei',
-                                    'Jun',
-                                    'Jul',
-                                    'Agu',
-                                    'Sep',
-                                    'Okt',
-                                    'Nov',
-                                    'Des',
-                                  ];
-                                  String month = '';
-                                  if (value.toInt() >= 1 && value.toInt() <= 12) {
-                                    month = months[value.toInt()];
-                                  }
-                                  return Container(
-                                    padding: EdgeInsets.only(top: 8),
-                                    child: Text(
-                                      month,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF8B7355),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
+                          SizedBox(height: 2),
+                          Text(
+                            "untuk tahun ${selectedYear}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF8B7355).withOpacity(0.8),
                             ),
                           ),
-                          minX: 1,
-                          maxX: 12,
-                          minY: 0,
-                          lineTouchData: LineTouchData(
-                            touchTooltipData: LineTouchTooltipData(
-                              tooltipBgColor: Color(0xFF6B5B47),
-                              tooltipRoundedRadius: 12,
-                              tooltipPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
+                        ],
+                      ),
+                    )
+                    : LineChart(
+                      LineChartData(
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots:
+                                chartData.map((e) {
+                                  final bulan = (e['bulan'] as int).toDouble();
+                                  final total =
+                                      num.tryParse(
+                                        e['total_penjualan'].toString(),
+                                      )?.toDouble() ??
+                                      0.0;
+                                  return FlSpot(bulan, total);
+                                }).toList(),
+                            isCurved: true,
+                            color: Color(0xFF8B7355),
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF8B7355), Color(0xFFB8A082)],
+                            ),
+                            dotData: FlDotData(
+                              show: true,
+                              getDotPainter: (spot, percent, barData, index) {
+                                return FlDotCirclePainter(
+                                  radius: 3,
+                                  color: Color(0xFF6B5B47),
+                                  strokeWidth: 1.5,
+                                  strokeColor: Colors.white,
+                                );
+                              },
+                            ),
+                            barWidth: 2.5,
+                            belowBarData: BarAreaData(
+                              show: true,
+                              color: Color(0xFFE8DDD4)
+                            ),
+                          ),
+                        ],
+                        borderData: FlBorderData(
+                          show: true,
+                          border: Border.all(
+                            color: Color(0xFFE8DDD4),
+                            width: 1,
+                          ),
+                        ),
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: null,
+                          getDrawingHorizontalLine:
+                              (value) => FlLine(
+                                color: Color(0xFFE8DDD4).withOpacity(0.5),
+                                strokeWidth: 0.5,
                               ),
-                              getTooltipItems: (touchedSpots) {
-                                return touchedSpots.map((spot) {
-                                  const months = [
-                                    '',
-                                    'Januari',
-                                    'Februari',
-                                    'Maret',
-                                    'April',
-                                    'Mei',
-                                    'Juni',
-                                    'Juli',
-                                    'Agustus',
-                                    'September',
-                                    'Oktober',
-                                    'November',
-                                    'Desember',
-                                  ];
-                                  final month = months[spot.x.toInt()];
-                                  final value = NumberFormat.currency(
+                        ),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 50,
+                              getTitlesWidget: (value, meta) {
+                                return Text(
+                                  NumberFormat.compactCurrency(
                                     locale: 'id_ID',
                                     symbol: 'Rp ',
                                     decimalDigits: 0,
-                                  ).format(spot.y);
-                                  
-                                  return LineTooltipItem(
-                                    '${month}\n${value}',
-                                    TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  );
-                                }).toList();
+                                  ).format(value),
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: Color(0xFF8B7355),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                );
                               },
                             ),
-                            handleBuiltInTouches: true,
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 24,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) {
+                                const months = [
+                                  '',
+                                  'Jan',
+                                  'Feb',
+                                  'Mar',
+                                  'Apr',
+                                  'Mei',
+                                  'Jun',
+                                  'Jul',
+                                  'Agu',
+                                  'Sep',
+                                  'Okt',
+                                  'Nov',
+                                  'Des',
+                                ];
+                                String month = '';
+                                if (value.toInt() >= 1 && value.toInt() <= 12) {
+                                  month = months[value.toInt()];
+                                }
+                                return Container(
+                                  padding: EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    month,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF8B7355),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
                           ),
                         ),
+                        minX: 1,
+                        maxX: 12,
+                        minY: 0,
+                        lineTouchData: LineTouchData(
+                          touchTooltipData: LineTouchTooltipData(
+                            tooltipBgColor: Color(0xFF6B5B47),
+                            tooltipRoundedRadius: 8,
+                            tooltipPadding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            getTooltipItems: (touchedSpots) {
+                              return touchedSpots.map((spot) {
+                                const months = [
+                                  '',
+                                  'Januari',
+                                  'Februari',
+                                  'Maret',
+                                  'April',
+                                  'Mei',
+                                  'Juni',
+                                  'Juli',
+                                  'Agustus',
+                                  'September',
+                                  'Oktober',
+                                  'November',
+                                  'Desember',
+                                ];
+                                final month = months[spot.x.toInt()];
+                                final value = NumberFormat.currency(
+                                  locale: 'id_ID',
+                                  symbol: 'Rp ',
+                                  decimalDigits: 0,
+                                ).format(spot.y);
+
+                                return LineTooltipItem(
+                                  '${month}\n${value}',
+                                  TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 11,
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
+                          handleBuiltInTouches: true,
+                        ),
                       ),
+                    ),
           ),
-          
-          // Summary section
+
+          // Summary section - more compact
           if (chartData.isNotEmpty) ...[
-            SizedBox(height: 20),
+            SizedBox(height: 12),
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Color(0xFFF8F6F0),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: Color(0xFFE8DDD4).withOpacity(0.5),
                   width: 1,
@@ -467,17 +481,17 @@ class _YearlySalesChartState extends State<YearlySalesChart> {
                       symbol: 'Rp ',
                       decimalDigits: 0,
                     ).format(
-                      chartData.fold(0.0, (sum, item) => 
-                        sum + (num.tryParse(item['total_penjualan'].toString()) ?? 0)
+                      chartData.fold(
+                        0.0,
+                        (sum, item) =>
+                            sum +
+                            (num.tryParse(item['total_penjualan'].toString()) ??
+                                0),
                       ),
                     ),
                     Icons.trending_up,
                   ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Color(0xFFE8DDD4),
-                  ),
+                  Container(width: 1, height: 32, color: Color(0xFFE8DDD4)),
                   _buildSummaryItem(
                     'Rata-rata/Bulan',
                     NumberFormat.currency(
@@ -485,9 +499,16 @@ class _YearlySalesChartState extends State<YearlySalesChart> {
                       symbol: 'Rp ',
                       decimalDigits: 0,
                     ).format(
-                      chartData.fold(0.0, (sum, item) => 
-                        sum + (num.tryParse(item['total_penjualan'].toString()) ?? 0)
-                      ) / (chartData.length > 0 ? chartData.length : 1),
+                      chartData.fold(
+                            0.0,
+                            (sum, item) =>
+                                sum +
+                                (num.tryParse(
+                                      item['total_penjualan'].toString(),
+                                    ) ??
+                                    0),
+                          ) /
+                          (chartData.length > 0 ? chartData.length : 1),
                     ),
                     Icons.analytics,
                   ),
@@ -503,25 +524,21 @@ class _YearlySalesChartState extends State<YearlySalesChart> {
   Widget _buildSummaryItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: Color(0xFF8B7355),
-        ),
-        SizedBox(height: 8),
+        Icon(icon, size: 20, color: Color(0xFF8B7355)),
+        SizedBox(height: 6),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             color: Color(0xFF8B7355).withOpacity(0.8),
             fontWeight: FontWeight.w400,
           ),
         ),
-        SizedBox(height: 4),
+        SizedBox(height: 2),
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF6B5B47),
           ),
