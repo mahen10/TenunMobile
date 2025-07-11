@@ -184,7 +184,7 @@ class HomeContent extends StatelessWidget {
               children: [
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                  height: 420,
+                  height: 454,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),

@@ -31,13 +31,14 @@ class _EditProductModalState extends State<EditProductModal> {
 
   // Daftar kategori
   final List<String> kategoriList = [
-    'Makanan',
-    'Minuman',
-    'Elektronik',
-    'Pakaian',
-    'Kesehatan',
-    'Kecantikan',
-    'Olahraga',
+    'Kain Sarung',
+    'Kain Songket',
+    'Kain Ikat',
+    'Selendang ',
+    'Busana Adat',
+    'Gaun Tenun',
+    'Taplak Meja Tenun',
+    'Hiasan Dinding',
     'Lainnya',
   ];
 
@@ -65,19 +66,20 @@ class _EditProductModalState extends State<EditProductModal> {
     super.dispose();
   }
 
-  void _showAlert(String message) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
+  void _showSnackBar(String message, {Color backgroundColor = Colors.green}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 
@@ -86,7 +88,7 @@ class _EditProductModalState extends State<EditProductModal> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       if (token == null) {
-        _showAlert('Token tidak ditemukan!');
+        _showSnackBar('Token tidak ditemukan!');
         return;
       }
 
@@ -114,8 +116,8 @@ class _EditProductModalState extends State<EditProductModal> {
 
       if (response.statusCode == 200) {
         Navigator.pop(context);
-        widget.onSuccess();
-        _showAlert('Produk berhasil diupdate!');
+        _showSnackBar('Penjualan berhasil disimpan!');
+
       } else {
         // Parse error response
         String errorMessage = 'Gagal update produk.';
@@ -142,10 +144,11 @@ class _EditProductModalState extends State<EditProductModal> {
           errorMessage = 'Error ${response.statusCode}: $responseBody';
         }
 
-        _showAlert(errorMessage);
+        _showSnackBar(errorMessage);
       }
     } catch (e) {
-      _showAlert('Terjadi kesalahan: ${e.toString()}');
+      _showSnackBar('Gagal menyimpan penjualan.', backgroundColor: Colors.red);
+
     }
   }
 

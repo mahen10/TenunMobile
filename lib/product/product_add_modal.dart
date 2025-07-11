@@ -23,27 +23,30 @@ class _AddProductModalState extends State<AddProductModal> {
 
   // Daftar kategori
   final List<String> kategoriList = [
-    'Makanan',
-    'Minuman',
-    'Elektronik',
-    'Pakaian',
-    'Kesehatan',
-    'Kecantikan',
-    'Olahraga',
-    'Lainnya'
+    'Kain Sarung',
+    'Kain Songket',
+    'Kain Ikat',
+    'Selendang ',
+    'Busana Adat',
+    'Gaun Tenun',
+    'Taplak Meja Tenun',
+    'Hiasan Dinding',
+    'Lainnya',
   ];
 
-  void _showAlert(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+  void _showSnackBar(String message, {Color backgroundColor = Colors.green}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -53,7 +56,7 @@ class _AddProductModalState extends State<AddProductModal> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       if (token == null) {
-        _showAlert('Token tidak ditemukan!');
+        _showSnackBar('Token tidak ditemukan!');
         return;
       }
 
@@ -68,16 +71,19 @@ class _AddProductModalState extends State<AddProductModal> {
       request.fields['stok'] = stok.toString();
       request.fields['deskripsi'] = deskripsi;
       if (foto != null) {
-        request.files.add(await http.MultipartFile.fromPath('gambar', foto!.path));
+        request.files.add(
+          await http.MultipartFile.fromPath('gambar', foto!.path),
+        );
       }
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      
+
       if (response.statusCode == 201 || response.statusCode == 200) {
         Navigator.pop(context);
         widget.onSuccess();
-        _showAlert('Produk berhasil ditambahkan!');
+        _showSnackBar('Produk berhasil di tambahkan!');
+
       } else {
         // Parse error response
         String errorMessage = 'Gagal menambahkan produk.';
@@ -103,11 +109,12 @@ class _AddProductModalState extends State<AddProductModal> {
         } catch (e) {
           errorMessage = 'Error ${response.statusCode}: $responseBody';
         }
-        
-        _showAlert(errorMessage);
+
+        _showSnackBar(errorMessage);
       }
     } catch (e) {
-      _showAlert('Terjadi kesalahan: ${e.toString()}');
+      _showSnackBar('Gagal menyimpan produk.', backgroundColor: Colors.red);
+
     }
   }
 
@@ -130,9 +137,7 @@ class _AddProductModalState extends State<AddProductModal> {
           iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFD7B44C),
-          ),
+          decoration: const BoxDecoration(color: Color(0xFFD7B44C)),
           child: Container(
             margin: const EdgeInsets.only(top: 20),
             decoration: const BoxDecoration(
@@ -155,7 +160,9 @@ class _AddProductModalState extends State<AddProductModal> {
                           child: GestureDetector(
                             onTap: () async {
                               final picker = ImagePicker();
-                              final picked = await picker.pickImage(source: ImageSource.gallery);
+                              final picked = await picker.pickImage(
+                                source: ImageSource.gallery,
+                              );
                               if (picked != null) {
                                 setModalState(() => foto = File(picked.path));
                               }
@@ -167,41 +174,44 @@ class _AddProductModalState extends State<AddProductModal> {
                                 color: Colors.grey[300],
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              child: foto != null
-                                  ? Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(15),
-                                          child: Image.file(
-                                            foto!,
-                                            width: 120,
-                                            height: 120,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 8,
-                                          right: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.black54,
-                                              shape: BoxShape.circle,
+                              child:
+                                  foto != null
+                                      ? Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              15,
                                             ),
-                                            child: const Icon(
-                                              Icons.edit,
-                                              color: Colors.white,
-                                              size: 16,
+                                            child: Image.file(
+                                              foto!,
+                                              width: 120,
+                                              height: 120,
+                                              fit: BoxFit.cover,
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    )
-                                  : const Icon(
-                                      Icons.edit,
-                                      size: 30,
-                                      color: Colors.grey,
-                                    ),
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.black54,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.edit,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                      : const Icon(
+                                        Icons.edit,
+                                        size: 30,
+                                        color: Colors.grey,
+                                      ),
                             ),
                           ),
                         ),
@@ -225,7 +235,10 @@ class _AddProductModalState extends State<AddProductModal> {
                           child: TextField(
                             decoration: InputDecoration(
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 15,
+                              ),
                               hintText: 'Masukkan nama produk',
                               hintStyle: GoogleFonts.poppins(
                                 color: Colors.grey,
@@ -255,7 +268,10 @@ class _AddProductModalState extends State<AddProductModal> {
                           child: DropdownButtonFormField<String>(
                             decoration: InputDecoration(
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 15,
+                              ),
                               hintText: 'Pilih Kategori',
                               hintStyle: GoogleFonts.poppins(
                                 color: Colors.grey,
@@ -264,15 +280,16 @@ class _AddProductModalState extends State<AddProductModal> {
                             ),
                             value: kategori.isEmpty ? null : kategori,
                             icon: const Icon(Icons.keyboard_arrow_down),
-                            items: kategoriList.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                  style: GoogleFonts.poppins(fontSize: 14),
-                                ),
-                              );
-                            }).toList(),
+                            items:
+                                kategoriList.map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(
+                                      value,
+                                      style: GoogleFonts.poppins(fontSize: 14),
+                                    ),
+                                  );
+                                }).toList(),
                             onChanged: (String? newValue) {
                               setModalState(() {
                                 kategori = newValue ?? '';
@@ -372,7 +389,10 @@ class _AddProductModalState extends State<AddProductModal> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 15,
+                              ),
                               hintText: '0',
                               hintStyle: GoogleFonts.poppins(
                                 color: Colors.grey,
@@ -403,7 +423,10 @@ class _AddProductModalState extends State<AddProductModal> {
                             maxLines: 4,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 15,
+                              ),
                               hintText: 'Deskripsi Produk',
                               hintStyle: TextStyle(color: Colors.grey),
                             ),
