@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import '../../config.dart';
+import '../service/config.dart';
 
 class YearlySalesChart extends StatefulWidget {
   @override

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:tenunapp/product/EditProductModal.dart';
 import 'package:tenunapp/product/product_add_modal.dart';
-import '../config.dart';
+import '../service/config.dart';
 
 
 class ProdukPage extends StatefulWidget {
@@ -118,33 +118,23 @@ class _ProdukPageState extends State<ProdukPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+          title: Text(
+            'Tambah Produk',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: const Color(0xFFD7B44C),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
       backgroundColor: Colors.yellow[700],
       body: Column(
         children: [
-          Container(
-            padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
-            decoration: BoxDecoration(
-              color: Colors.yellow[700],
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(50),
-                bottomRight: Radius.circular(50),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.arrow_back, color: Colors.black),
-                SizedBox(width: 16),
-                Text(
-                  'Produk Tenun',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          
           Expanded(
             child: Container(
               width: double.infinity,

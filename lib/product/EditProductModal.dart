@@ -1,11 +1,11 @@
 import 'dart:io';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../config.dart';
+import '../service/config.dart';
 
 class EditProductModal extends StatefulWidget {
   final Map<String, dynamic> produk;
@@ -23,28 +23,44 @@ class EditProductModal extends StatefulWidget {
 
 class _EditProductModalState extends State<EditProductModal> {
   late TextEditingController namaProdukController;
-  late TextEditingController kategoriController;
   late TextEditingController hargaController;
-  late TextEditingController stokController;
   late TextEditingController deskripsiController;
+  late String kategori;
+  late int stok;
   File? foto;
+
+  // Daftar kategori
+  final List<String> kategoriList = [
+    'Makanan',
+    'Minuman',
+    'Elektronik',
+    'Pakaian',
+    'Kesehatan',
+    'Kecantikan',
+    'Olahraga',
+    'Lainnya',
+  ];
 
   @override
   void initState() {
     super.initState();
-    namaProdukController = TextEditingController(text: widget.produk['nama_produk'] ?? '');
-    kategoriController = TextEditingController(text: widget.produk['kategori'] ?? '');
-    hargaController = TextEditingController(text: widget.produk['harga_jual'].toString());
-    stokController = TextEditingController(text: widget.produk['stok'].toString());
-    deskripsiController = TextEditingController(text: widget.produk['deskripsi'] ?? '');
+    namaProdukController = TextEditingController(
+      text: widget.produk['nama_produk'] ?? '',
+    );
+    hargaController = TextEditingController(
+      text: widget.produk['harga_jual'].toString(),
+    );
+    deskripsiController = TextEditingController(
+      text: widget.produk['deskripsi'] ?? '',
+    );
+    kategori = widget.produk['kategori'] ?? '';
+    stok = int.tryParse(widget.produk['stok'].toString()) ?? 0;
   }
 
   @override
   void dispose() {
     namaProdukController.dispose();
-    kategoriController.dispose();
     hargaController.dispose();
-    stokController.dispose();
     deskripsiController.dispose();
     super.dispose();
   }
@@ -52,53 +68,84 @@ class _EditProductModalState extends State<EditProductModal> {
   void _showAlert(String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
   Future<void> _saveChanges() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    if (token == null) {
-      _showAlert('Token tidak ditemukan!');
-      return;
-    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      if (token == null) {
+        _showAlert('Token tidak ditemukan!');
+        return;
+      }
 
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${Config.apiUrl}/api/produk/${widget.produk['id']}?_method=PUT'),
-    );
-    request.headers['Authorization'] = 'Bearer $token';
-    request.fields['nama_produk'] = namaProdukController.text;
-    request.fields['kategori'] = kategoriController.text;
-    request.fields['harga_jual'] = hargaController.text;
-    request.fields['stok'] = stokController.text;
-    request.fields['deskripsi'] = deskripsiController.text;
-
-    if (foto != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'gambar',
-          foto!.path,
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+          '${Config.apiUrl}/api/produk/${widget.produk['id']}?_method=PUT',
         ),
       );
-    }
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['nama_produk'] = namaProdukController.text;
+      request.fields['kategori'] = kategori;
+      request.fields['harga_jual'] = hargaController.text;
+      request.fields['stok'] = stok.toString();
+      request.fields['deskripsi'] = deskripsiController.text;
 
-    final response = await request.send();
-    if (response.statusCode == 200) {
-      Navigator.pop(context);
-      widget.onSuccess();
-      _showAlert('Produk berhasil diupdate!');
-    } else {
-      _showAlert('Gagal update produk.');
+      if (foto != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('gambar', foto!.path),
+        );
+      }
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        Navigator.pop(context);
+        widget.onSuccess();
+        _showAlert('Produk berhasil diupdate!');
+      } else {
+        // Parse error response
+        String errorMessage = 'Gagal update produk.';
+        try {
+          final Map<String, dynamic> errorData = json.decode(responseBody);
+          if (errorData.containsKey('message')) {
+            errorMessage = 'Error: ${errorData['message']}';
+          } else if (errorData.containsKey('error')) {
+            errorMessage = 'Error: ${errorData['error']}';
+          } else if (errorData.containsKey('errors')) {
+            // Handle validation errors
+            Map<String, dynamic> errors = errorData['errors'];
+            List<String> errorList = [];
+            errors.forEach((key, value) {
+              if (value is List) {
+                errorList.addAll(value.map((e) => e.toString()));
+              } else {
+                errorList.add(value.toString());
+              }
+            });
+            errorMessage = 'Validation Error:\n${errorList.join('\n')}';
+          }
+        } catch (e) {
+          errorMessage = 'Error ${response.statusCode}: $responseBody';
+        }
+
+        _showAlert(errorMessage);
+      }
+    } catch (e) {
+      _showAlert('Terjadi kesalahan: ${e.toString()}');
     }
   }
 
@@ -108,65 +155,373 @@ class _EditProductModalState extends State<EditProductModal> {
       insetPadding: EdgeInsets.zero,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Edit Produk'),
+          title: Text(
+            'Edit Produk',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+
           backgroundColor: const Color(0xFFD7B44C),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  decoration: const InputDecoration(labelText: 'Nama Produk'),
-                  controller: namaProdukController,
+        body: Container(
+          decoration: const BoxDecoration(color: Color(0xFFD7B44C)),
+          child: Container(
+            margin: const EdgeInsets.only(top: 20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Image Picker Area
+                    Center(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final picker = ImagePicker();
+                          final picked = await picker.pickImage(
+                            source: ImageSource.gallery,
+                          );
+                          if (picked != null) {
+                            setState(() => foto = File(picked.path));
+                          }
+                        },
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child:
+                              foto != null
+                                  ? Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: Image.file(
+                                          foto!,
+                                          width: 120,
+                                          height: 120,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.edit,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : widget.produk['gambar'] != null
+                                  ? Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: Image.network(
+                                          '${Config.apiUrl}/storage/${widget.produk['gambar']}',
+                                          width: 120,
+                                          height: 120,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return const Icon(
+                                              Icons.edit,
+                                              size: 30,
+                                              color: Colors.grey,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.edit,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : const Icon(
+                                    Icons.edit,
+                                    size: 30,
+                                    color: Colors.grey,
+                                  ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Nama Produk
+                    Text(
+                      'Nama Produk',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E8),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        controller: namaProdukController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 15,
+                          ),
+                          hintText: 'Masukkan nama produk',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Kategori
+                    Text(
+                      'Kategori',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E8),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 15,
+                          ),
+                          hintText: 'Pilih Kategori',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                        value: kategori.isEmpty ? null : kategori,
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        items:
+                            kategoriList.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            kategori = newValue ?? '';
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Stok
+                    Text(
+                      'Stok',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            if (stok > 0) {
+                              setState(() => stok--);
+                            }
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.remove, color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        Container(
+                          width: 60,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E8),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Center(
+                            child: Text(
+                              stok.toString(),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => stok++);
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Harga Jual
+                    Text(
+                      'Harga Jual',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E8),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        controller: hargaController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 15,
+                          ),
+                          hintText: '0',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Deskripsi
+                    Text(
+                      'Deskripsi',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E8),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        controller: deskripsiController,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 15,
+                          ),
+                          hintText: 'Deskripsi Produk',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Simpan Button
+                    Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFD7B44C), Color(0xFFE8C55A)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        onPressed: _saveChanges,
+                        child: Text(
+                          'Simpan Perubahan',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color.fromARGB(221, 255, 255, 255),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
-                TextField(
-                  decoration: const InputDecoration(labelText: 'Kategori'),
-                  controller: kategoriController,
-                ),
-                TextField(
-                  decoration: const InputDecoration(labelText: 'Harga Jual'),
-                  keyboardType: TextInputType.number,
-                  controller: hargaController,
-                ),
-                TextField(
-                  decoration: const InputDecoration(labelText: 'Stok'),
-                  keyboardType: TextInputType.number,
-                  controller: stokController,
-                ),
-                TextField(
-                  decoration: const InputDecoration(labelText: 'Deskripsi'),
-                  maxLines: 3,
-                  controller: deskripsiController,
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.image),
-                  label: const Text('Pilih Foto (Opsional)'),
-                  onPressed: () async {
-                    final picker = ImagePicker();
-                    final picked = await picker.pickImage(
-                      source: ImageSource.gallery,
-                    );
-                    if (picked != null) {
-                      setState(() => foto = File(picked.path));
-                    }
-                  },
-                ),
-                if (foto != null)
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Image.file(foto!, height: 100),
-                  ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _saveChanges,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD7B44C),
-                  ),
-                  child: const Text('Simpan Perubahan'),
-                ),
-              ],
+              ),
             ),
           ),
         ),

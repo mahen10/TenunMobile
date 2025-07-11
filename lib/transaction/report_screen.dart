@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
-import '../../config.dart';
+import '../service/config.dart';
 
 class ReportScreen extends StatefulWidget {
   @override

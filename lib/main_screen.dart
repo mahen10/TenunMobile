@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'transaction_screen.dart';
+import 'transaction/transaction_screen.dart';
 import 'product/product_screen.dart'; // Halaman produk
-import 'report_screen.dart'; // Dummy
+import 'transaction/report_screen.dart'; // Dummy
 import 'account_screen.dart'; // ⬅ Pastikan ini diimpor juga
 
 class MainScreen extends StatefulWidget {

@@ -1,5 +1,5 @@
 // lib/config.dart
 class Config {
   static const String apiUrl =
-      'http://192.168.45.145:8000'; // Ganti dengan IP lokal Anda
+      'http://10.205.251.145:8000'; // Ganti dengan IP lokal Anda
 }

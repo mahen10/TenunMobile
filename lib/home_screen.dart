@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tenunapp/account_screen.dart';
-import 'package:tenunapp/report_screen.dart';
-import 'config.dart';
+import 'package:tenunapp/transaction/report_screen.dart';
+import 'service/config.dart';
 import 'package:intl/intl.dart';
-import 'transaction_screen.dart';
+import 'transaction/transaction_screen.dart';
 import 'product/product_screen.dart';
 import 'package:tenunapp/widgets/yearly_sales_chart.dart';
 

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_screen.dart';
-import 'config.dart';
+import 'service/config.dart';
 import 'home_screen.dart'; // Impor home_screen.dart secara eksplisit
 
 void main() {
