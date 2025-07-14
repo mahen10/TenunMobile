@@ -282,7 +282,9 @@ class _ProdukPageState extends State<ProdukPage> {
         ),
         backgroundColor: const Color(0xFFD7B44C),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(
+          color: Color.fromARGB(255, 255, 255, 255),
+        ),
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFD7B44C),
@@ -609,19 +611,11 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                             20,
                                                                           ),
                                                                       decoration: BoxDecoration(
-                                                                        gradient: LinearGradient(
-                                                                          colors: [
-                                                                            Color(
-                                                                              0xFF6366F1,
-                                                                            ), // Indigo
-                                                                            Color(
-                                                                              0xFF8B5CF6,
-                                                                            ), // Purple
-                                                                          ],
-                                                                          begin:
-                                                                              Alignment.topLeft,
-                                                                          end:
-                                                                              Alignment.bottomRight,
+                                                                        color: const Color.fromRGBO(
+                                                                          252,
+                                                                          211,
+                                                                          77,
+                                                                          1,
                                                                         ),
                                                                         borderRadius: BorderRadius.only(
                                                                           topLeft: Radius.circular(
@@ -653,8 +647,12 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                                     20,
                                                                                 fontWeight:
                                                                                     FontWeight.w600,
-                                                                                color:
-                                                                                    Colors.white,
+                                                                                color: const Color.fromARGB(
+                                                                                  255,
+                                                                                  255,
+                                                                                  255,
+                                                                                  255,
+                                                                                ),
                                                                               ),
                                                                             ),
                                                                           ),
@@ -842,7 +840,7 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                                 ),
                                                                             style: ElevatedButton.styleFrom(
                                                                               backgroundColor: Color(
-                                                                                0xFF6366F1,
+                                                                                0xFFD7B44C,
                                                                               ),
                                                                               foregroundColor:
                                                                                   Colors.white,

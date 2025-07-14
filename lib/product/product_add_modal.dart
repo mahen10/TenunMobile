@@ -26,7 +26,7 @@ class _AddProductModalState extends State<AddProductModal> {
     'Kain Sarung',
     'Kain Songket',
     'Kain Ikat',
-    'Selendang ',
+    'Selendang',
     'Busana Adat',
     'Gaun Tenun',
     'Taplak Meja Tenun',

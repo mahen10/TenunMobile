@@ -68,51 +68,33 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     Map<String, double> dataMap = {
-      "Penjualan": totalPenjualan,
-      "Pembelian": totalPembelian,
+      "Total Penjualan": totalPenjualan,
+      "Total Pembelian": totalPembelian,
     };
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color.fromRGBO(252, 211, 77, 1),
       body: Column(
         children: [
           // HEADER SECTION
           Container(
             padding: EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  const Color.fromRGBO(252, 211, 77, 1),
-                  const Color.fromRGBO(252, 211, 77, 1),
-                ],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(50),
-                bottomRight: Radius.circular(50),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color.fromRGBO(224, 224, 224, 1).withOpacity(0.5),
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
-                ),
-              ],
+              color: const Color.fromRGBO(252, 211, 77, 1),
             ),
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 254, 254)),
+                  icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 255, 255)),
                   onPressed: () => Navigator.pop(context),
                 ),
                 SizedBox(width: 16),
                 Text(
-                  'Laporan',
+                  'Laporan Bulanan',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 255, 255, 255),
+                    color: const Color.fromARGB(255, 250, 249, 249),
                   ),
                 ),
               ],
@@ -135,31 +117,32 @@ class _ReportScreenState extends State<ReportScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    SizedBox(height: 20),
+                    
                     // PICK MONTH & YEAR (PAKE MONTH PICKER DIALOG)
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.green[100],
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: Colors.grey[300]!,
+                          color: Colors.green[300]!,
                           width: 1,
                         ),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Bulan: ",
+                            "Pilih Bulan",
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
+                              color: Colors.green[700],
+                              fontSize: 16,
                             ),
                           ),
-                          SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: () async {
+                          GestureDetector(
+                            onTap: () async {
                               final picked = await showMonthPicker(
                                 context: context,
                                 initialDate: DateTime.now(),
@@ -174,21 +157,17 @@ class _ReportScreenState extends State<ReportScreen> {
                                 await _fetchReport();
                               }
                             },
-                            child: Text(selectedMonth),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromRGBO(252, 211, 77, 1),
-                              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.green[700],
+                              size: 24,
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    SizedBox(height: 20),
+                    SizedBox(height: 40),
 
                     // PIE CHART
                     Container(
@@ -208,23 +187,35 @@ class _ReportScreenState extends State<ReportScreen> {
                           ? CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[600]!),
                             )
-                          : PieChart(
-                              dataMap: dataMap,
-                              chartRadius: MediaQuery.of(context).size.width / 2.2,
-                              colorList: [Colors.teal[400]!, Colors.blue[400]!],
-                              chartType: ChartType.disc,
-                              ringStrokeWidth: 32,
-                              legendOptions: LegendOptions(
-                                legendPosition: LegendPosition.bottom,
-                                showLegends: true,
-                                legendTextStyle: GoogleFonts.poppins(
-                                  color: Colors.grey[700],
+                          : Column(
+                              children: [
+                                PieChart(
+                                  dataMap: dataMap,
+                                  chartRadius: MediaQuery.of(context).size.width / 2.5,
+                                  colorList: [Colors.green[400]!, Colors.red[400]!],
+                                  chartType: ChartType.ring,
+                                  ringStrokeWidth: 40,
+                                  legendOptions: LegendOptions(
+                                    legendPosition: LegendPosition.bottom,
+                                    showLegends: true,
+                                    legendTextStyle: GoogleFonts.poppins(
+                                      color: Colors.grey[700],
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  chartValuesOptions: ChartValuesOptions(
+                                    showChartValuesInPercentage: true,
+                                    showChartValues: true,
+                                    showChartValuesOutside: false,
+                                    chartValueStyle: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: const Color.fromARGB(255, 0, 0, 0),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              chartValuesOptions: ChartValuesOptions(
-                                showChartValuesInPercentage: true,
-                                showChartValues: true,
-                              ),
+                              ],
                             ),
                     ),
                     SizedBox(height: 30),
@@ -237,12 +228,8 @@ class _ReportScreenState extends State<ReportScreen> {
                           child: Container(
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.green[100],
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color.fromARGB(255, 3, 165, 55),
-                                width: 2,
-                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.grey[200]!,
@@ -257,15 +244,16 @@ class _ReportScreenState extends State<ReportScreen> {
                                   'Total Penjualan',
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.bold,
-                                    color: const Color.fromARGB(255, 3, 165, 55),
+                                    color: Colors.green[700],
+                                    fontSize: 14,
                                   ),
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   'Rp ${NumberFormat("#,##0", "id_ID").format(totalPenjualan)}',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    color: const Color.fromARGB(255, 3, 165, 55),
+                                    fontSize: 16,
+                                    color: Colors.green[700],
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -273,17 +261,13 @@ class _ReportScreenState extends State<ReportScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 16),
+                        SizedBox(width: 14),
                         Expanded(
                           child: Container(
                             padding: EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.red[100],
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.blue[200]!,
-                                width: 2,
-                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.grey[200]!,
@@ -298,15 +282,16 @@ class _ReportScreenState extends State<ReportScreen> {
                                   'Total Pembelian',
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.grey[700],
+                                    color: Colors.red[700],
+                                    fontSize: 14,
                                   ),
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   'Rp ${NumberFormat("#,##0", "id_ID").format(totalPembelian)}',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    color: Colors.blue[600],
+                                    fontSize: 16,
+                                    color: Colors.red[700],
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

@@ -34,7 +34,7 @@ class _EditProductModalState extends State<EditProductModal> {
     'Kain Sarung',
     'Kain Songket',
     'Kain Ikat',
-    'Selendang ',
+    'Selendang',
     'Busana Adat',
     'Gaun Tenun',
     'Taplak Meja Tenun',
@@ -116,7 +116,7 @@ class _EditProductModalState extends State<EditProductModal> {
 
       if (response.statusCode == 200) {
         Navigator.pop(context);
-        _showSnackBar('Penjualan berhasil disimpan!');
+        _showSnackBar('Pembaruan berhasil disimpan!');
 
       } else {
         // Parse error response
@@ -147,7 +147,7 @@ class _EditProductModalState extends State<EditProductModal> {
         _showSnackBar(errorMessage);
       }
     } catch (e) {
-      _showSnackBar('Gagal menyimpan penjualan.', backgroundColor: Colors.red);
+      _showSnackBar('Gagal menyimpan pembaruan.', backgroundColor: Colors.red);
 
     }
   }
